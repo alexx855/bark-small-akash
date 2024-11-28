@@ -1,5 +1,5 @@
 import torch
-from transformers import AutoProcessor, AutoModelForTextToWaveform
+from transformers import AutoProcessor, AutoModelForTextToWaveform, BarkModel
 from scipy.io.wavfile import write as write_wav
 import os
 import time
@@ -15,16 +15,14 @@ def log_time(start_time, step_name):
     print(f"{step_name}: {elapsed:.2f} seconds")
     return time.time()
 
-def generate_audio(text, voice_preset, device):
+def create_bark_audio(text, voice_preset, device):
     try:
         # Initialize model and processor
         start = time.time()
         processor = AutoProcessor.from_pretrained("suno/bark-small")
-        model = AutoModelForTextToWaveform.from_pretrained(
-            "suno/bark-small",
-            pad_token_id=0,
-            eos_token_id=2,
-        ).to(device)
+        model = BarkModel.from_pretrained("suno/bark-small", torch_dtype=torch.float16).to(device)
+        model =  model.to_bettertransformer()
+        model.enable_cpu_offload()
         start = log_time(start, "Model loading")
 
         # Process input text
@@ -32,7 +30,6 @@ def generate_audio(text, voice_preset, device):
         inputs = processor(
             text,
             voice_preset=voice_preset,
-            return_attention_mask=True
         )
         # Move inputs to device
         inputs = {k: v.to(device) if hasattr(v, 'to') else v for k, v in inputs.items()}
@@ -40,13 +37,9 @@ def generate_audio(text, voice_preset, device):
 
         # Generate audio
         start = time.time()
-        with torch.no_grad(), torch.amp.autocast('cuda' if device == 'cuda' else 'cpu'):
-            audio_array = model.generate(
-                **inputs,
-                do_sample=True,
-                num_beams=1,
-            )
-            audio_array = audio_array.cpu().numpy().squeeze()
+        audio_array = model.generate(**inputs)
+        audio_array = audio_array.cpu().numpy().squeeze()
+
         start = log_time(start, "Audio generation")
 
         return audio_array, model.generation_config.sample_rate
@@ -83,11 +76,13 @@ def main():
 
     try:
         # Voice settings
-        voice_preset = "v2/en_speaker_6"
-        text = "Hello, my dog is cute, really cute"
+        # voice_preset = "v2/en_speaker_6"
+        # voice_preset = "v2/es_speaker_0"
+        voice_preset = "v2/es_speaker_2"
+        text = "pinta esa patagonia amigo?"
 
         # Generate and save audio
-        audio_array, sample_rate = generate_audio(text, voice_preset, device)
+        audio_array, sample_rate = create_bark_audio(text, voice_preset, device)
         filename = save_audio(audio_array, sample_rate)
         print(f"Audio saved as: {filename}")
 
