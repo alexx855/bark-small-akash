@@ -6,7 +6,8 @@ VOICES = {
     "Speaker 0 (EN)": "v2/en_speaker_0",
     "Speaker 1 (EN)": "v2/en_speaker_1",
     "Speaker 2 (EN)": "v2/en_speaker_2",
-    "Speaker 3 (EN)": "v2/en_speaker_3"
+    "Speaker 3 (EN)": "v2/en_speaker_3",
+    "Speaker 4 (EN)": "v2/en_speaker_4"
 }
 
 def text_to_speech(text, voice):
@@ -29,7 +30,8 @@ demo = gr.Interface(
         ["Welcome to the news. Today's top story...", "Speaker 0 (EN)"],
         ["Once upon a time in a magical forest...", "Speaker 1 (EN)"],
         ["The quick brown fox jumps over the lazy dog.", "Speaker 2 (EN)"],
-        ["I love to sing and dance in the rain.", "Speaker 3 (EN)"]
+        ["I love to sing and dance in the rain.", "Speaker 3 (EN)"],
+        ["The weather today will be sunny with a high of 75 degrees.", "Speaker 4 (EN)"]
     ]
 )
 
