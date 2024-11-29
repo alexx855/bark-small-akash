@@ -147,22 +147,38 @@ def text_to_speech_with_url(text, voice):
     voice_preset = VOICES[voice]
     audio_file = generate_speech(text, voice_preset)
     filename = os.path.basename(audio_file)
-    url = f"/generated/{filename}"
+    base_url = os.environ.get("PUBLIC_URL", "http://localhost:7860")
+    url = f"{base_url}/generated/{filename}"
     return audio_file, url
 
 # Create single Gradio interface with both outputs
 demo = gr.Interface(
     fn=text_to_speech_with_url,
     inputs=[
-        gr.Textbox(label="Text to speak", placeholder="Enter text here..."),
+        gr.Textbox(label="Text to audio", placeholder="Enter text here...", show_copy_button=True, show_label=True),
         gr.Dropdown(choices=list(VOICES.keys()), value="Speaker 0 (EN)", label="Voice")
     ],
     outputs=[
         gr.Audio(label="Generated Speech"),
-        gr.Textbox(label="Public URL")
+        gr.Textbox(
+            label="Public URL", 
+            interactive=False,
+            show_copy_button=True,
+            show_label=True
+        )
     ],
-    title="Text to Speech with Bark",
-    description="Generate realistic speech from text using the Bark model",
+    title="Audio Akash 🎵 AI Audio Generator",
+    description="""
+    Transform text into natural-sounding speech using the Bark AI model. 
+    Features support for multiple languages and voice styles.
+    
+    **How to use:**
+    1. Enter your text in any supported language
+    2. Select a voice preset
+    3. Click submit to generate speech
+    4. Get the public URL to share/download the generated audio (it will expire in 24 hours)
+    """,
+    article="Powered by Bark-small model from Suno AI",
     allow_flagging="never",
     examples=[
         # English examples
@@ -170,7 +186,6 @@ demo = gr.Interface(
         ["The quick brown fox jumps over the lazy dog.", "Speaker 1 (EN)"],
         # Chinese examples
         ["你好，今天天气真不错。", "Speaker 0 (ZH)"],
-        ["我很高兴认识你。", "Speaker 1 (ZH)"],
         # French examples
         ["Bonjour, comment allez-vous aujourd'hui?", "Speaker 0 (FR)"],
         ["J'aime beaucoup voyager en France.", "Speaker 1 (FR)"],
@@ -207,11 +222,11 @@ demo = gr.Interface(
     ]
 )
 
-OUTPUT_DIR = "output" 
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "output") 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 if __name__ == "__main__":
     app = FastAPI()
     app.mount("/generated", StaticFiles(directory=OUTPUT_DIR), name="generated")
-    gradio_app = gr.mount_gradio_app(app, demo, path="/")
+    gradio_app = gr.mount_gradio_app(app, demo, path="/", favicon_path="favicon.ico")
     uvicorn.run(app, host="0.0.0.0", port=7860)

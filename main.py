@@ -17,8 +17,8 @@ OUTPUT_DIR = "output"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def cleanup_old_files():
-    """Remove audio files older than 1 hour"""
-    cutoff_time = datetime.now() - timedelta(hours=1)  # Changed from minutes=2 to hours=1
+    """Remove audio files older than 24 hour"""
+    cutoff_time = datetime.now() - timedelta(hours=24)  # Changed from minutes=2 to hours=1
     for file in glob.glob(os.path.join(OUTPUT_DIR, "audio_*.wav")):
         file_time = datetime.fromtimestamp(os.path.getmtime(file))
         if file_time < cutoff_time:

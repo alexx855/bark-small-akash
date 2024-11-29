@@ -2,19 +2,23 @@
 version: "2.0"
 services:
   bark-small:
-    image: alexpedersen/bark-small:0.0.1
+    image: alexpedersen/audio-akash:0.0.1
     expose:
       - port: 7860
         as: 7860
         to:
           - global: true
+        # accept:
+        #   - cars.ingress.europlots.com
     params:
       storage:
         data:
           mount: /mnt/
           readOnly: false
     env:
-      - HF_HOME=/mnt/models
+      - OUTPUT_DIR=/mnt/output
+      - HF_HOME=/mnt/hf
+      # - PUBLIC_URL=cars.ingress.europlots.com
 profiles:
   compute:
     bark-small:
