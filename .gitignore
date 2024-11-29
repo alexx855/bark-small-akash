@@ -3,4 +3,5 @@
 .env
 __pycache__
 .gradio
-output
+output/*
+!output/.gitkeep
