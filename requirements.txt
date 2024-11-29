@@ -5,5 +5,5 @@ torch
 bark
 scipy
 numpy
-gradio
+gradio>5.0.0
 apscheduler
