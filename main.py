@@ -17,8 +17,8 @@ OUTPUT_DIR = "output"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def cleanup_old_files():
-    """Remove audio files older than 1 hour"""
-    cutoff_time = datetime.now() - timedelta(hours=1)
+    """Remove audio files older than 2 minutes"""
+    cutoff_time = datetime.now() - timedelta(minutes=2)
     for file in glob.glob(os.path.join(OUTPUT_DIR, "audio_*.wav")):
         file_time = datetime.fromtimestamp(os.path.getmtime(file))
         if file_time < cutoff_time:
@@ -30,7 +30,7 @@ def cleanup_old_files():
 
 # Initialize scheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(cleanup_old_files, 'interval', minutes=5)
+scheduler.add_job(cleanup_old_files, 'interval', minutes=1)
 scheduler.start()
 
 def log_time(start_time, step_name):
