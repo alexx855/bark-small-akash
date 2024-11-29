@@ -31,12 +31,8 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 processor = AutoProcessor.from_pretrained("suno/bark-small")
 model = BarkModel.from_pretrained("suno/bark-small", torch_dtype=torch.float16).to(device)
 model = model.to_bettertransformer()
-# model.enable_cpu_offload()
 
 start = log_time(start, "Model loading")
-
-# download and load all models
-# preload_models()
 
 def create_bark_audio(text, voice_preset, device):
     try:
@@ -239,75 +235,102 @@ def text_to_speech_with_url(text, voice):
     return audio_file, url
 
 # Create single Gradio interface with both outputs
-gradio_audio = gr.Interface(
-    fn=text_to_speech_with_url,
-    inputs=[
-        gr.Textbox(label="Text to audio", placeholder="Enter text here...", show_copy_button=False, show_label=True),
-        gr.Dropdown(choices=list(VOICES.keys()), value="Speaker 0 (EN)", label="Voice")
-    ],
-    outputs=[
-        gr.Audio(label="Generated Speech"),
-        gr.Textbox(
-            label="Public URL", 
-            interactive=False,
-            show_copy_button=True,
-            show_label=True
-        )
-    ],
-    title="Audio Akash 🎵 AI Audio Generator",
-    description="""
-    Transform text into natural-sounding speech using the Bark AI model. 
-    Features support for multiple languages and voice styles.
-    
-    **How to use:**
-    1. Enter your text in any supported language
-    2. Select a voice preset
-    3. Click submit to generate speech
-    4. Get the public URL to share/download the generated audio (it will expire in 24 hours)
-    """,
-    article="Powered by Bark-small model from Suno AI and Akash Network",
-    flagging_mode=None,
-    examples=[
-        # English examples
-        ["Welcome to the news. Today's top story...", "Speaker 0 (EN)"],
-        ["The quick brown fox jumps over the lazy dog.", "Speaker 1 (EN)"],
-        # Chinese examples
-        ["你好，今天天气真不错。", "Speaker 0 (ZH)"],
-        # French examples
-        ["Bonjour, comment allez-vous aujourd'hui?", "Speaker 0 (FR)"],
-        ["J'aime beaucoup voyager en France.", "Speaker 1 (FR)"],
-        # German examples
-        ["Guten Tag, wie geht es Ihnen?", "Speaker 0 (DE)"],
-        ["Das Wetter ist heute sehr schön.", "Speaker 1 (DE)"],
-        # Hindi examples
-        ["नमस्ते, आप कैसे हैं?", "Speaker 0 (HI)"],
-        ["मौसम बहुत सुहावना है।", "Speaker 1 (HI)"],
-        # Italian examples
-        ["Buongiorno, come stai oggi?", "Speaker 0 (IT)"],
-        ["Mi piace molto viaggiare in Italia.", "Speaker 1 (IT)"],
-        # Japanese examples
-        ["こんにちは、お元気ですか？", "Speaker 0 (JA)"],
-        ["今日はとても良い天気ですね。", "Speaker 1 (JA)"],
-        # Korean examples
-        ["안녕하세요, 오늘 기분이 어떠신가요?", "Speaker 0 (KO)"],
-        ["날씨가 정말 좋네요.", "Speaker 1 (KO)"],
-        # Polish examples
-        ["Dzień dobry, jak się masz?", "Speaker 0 (PL)"],
-        ["Dzisiaj jest bardzo ładna pogoda.", "Speaker 1 (PL)"],
-        # Portuguese examples
-        ["Olá, como está você hoje?", "Speaker 0 (PT)"],
-        ["O tempo está muito bonito hoje.", "Speaker 1 (PT)"],
-        # Russian examples
-        ["Здравствуйте, как ваши дела?", "Speaker 0 (RU)"],
-        ["Сегодня прекрасная погода.", "Speaker 1 (RU)"],
-        # Spanish examples
-        ["Hola, ¿cómo estás hoy?", "Speaker 0 (ES)"],
-        ["El tiempo está muy bonito hoy.", "Speaker 1 (ES)"],
-        # Turkish examples
-        ["Merhaba, bugün nasılsınız?", "Speaker 0 (TR)"],
-        ["Bugün hava çok güzel.", "Speaker 1 (TR)"]
-    ]
-)
+custom_css = """
+#component-16 {
+    display: none !important;
+}
+
+.gradio-container .main h1 {
+    padding-top: 60px;
+    position: relative;
+}
+
+.gradio-container .main h1::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 253px;
+    height: 50px;
+    background-image: url('public/AkashLogo.svg');
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+"""
+
+# Add the CSS to your Gradio interface definition
+with gr.Blocks(css=custom_css) as gradio_audio:
+    gr.Interface(
+        fn=text_to_speech_with_url,
+        inputs=[
+            gr.Textbox(label="Text to audio", placeholder="Enter text here...", show_copy_button=False, show_label=True),
+            gr.Dropdown(choices=list(VOICES.keys()), value="Speaker 0 (EN)", label="Voice",)
+        ],
+        outputs=[
+            gr.Audio(label="Generated Speech"),
+            gr.Textbox(
+                label="Public URL", 
+                interactive=False,
+                show_copy_button=True,
+                show_label=True
+            )
+        ],
+        title="Audio Generator",
+        description="""
+        Transform text into natural-sounding speech using the Bark AI model. 
+        Features support for multiple languages and voice styles.
+        
+        **How to use:**
+        1. Enter your text in any supported language
+        2. Select a voice preset
+        3. Click submit to generate speech
+        4. Get the public URL to share/download the generated audio (it will expire in 24 hours)
+        """,
+        article="""<div style="text-align: center">Powered by <a href="https://huggingface.co/suno/bark-small">Bark-small</a> model and <a href="https://akash.network">Akash Network</a>, created by <a href="https://github.com/alexx855">alexx855</a></div>""",
+        flagging_mode=None,
+        examples=[
+            # English examples
+            ["Welcome to the news. Today's top story...", "Speaker 0 (EN)"],
+            ["The quick brown fox jumps over the lazy dog.", "Speaker 1 (EN)"],
+            # Chinese examples
+            ["你好，今天天气真不错。", "Speaker 0 (ZH)"],
+            # French examples
+            ["Bonjour, comment allez-vous aujourd'hui?", "Speaker 0 (FR)"],
+            ["J'aime beaucoup voyager en France.", "Speaker 1 (FR)"],
+            # German examples
+            ["Guten Tag, wie geht es Ihnen?", "Speaker 0 (DE)"],
+            ["Das Wetter ist heute sehr schön.", "Speaker 1 (DE)"],
+            # Hindi examples
+            ["नमस्ते, आप कैसे हैं?", "Speaker 0 (HI)"],
+            ["मौसम बहुत सुहावन�� है।", "Speaker 1 (HI)"],
+            # Italian examples
+            ["Buongiorno, come stai oggi?", "Speaker 0 (IT)"],
+            ["Mi piace molto viaggiare in Italia.", "Speaker 1 (IT)"],
+            # Japanese examples
+            ["こんにちは、お元気ですか？", "Speaker 0 (JA)"],
+            ["今日はとても良い天気ですね。", "Speaker 1 (JA)"],
+            # Korean examples
+            ["안녕하세요, 오늘 기분이 어떠신가요?", "Speaker 0 (KO)"],
+            ["날씨가 정말 좋네요.", "Speaker 1 (KO)"],
+            # Polish examples
+            ["Dzień dobry, jak się masz?", "Speaker 0 (PL)"],
+            ["Dzisiaj jest bardzo ładna pogoda.", "Speaker 1 (PL)"],
+            # Portuguese examples
+            ["Olá, como está você hoje?", "Speaker 0 (PT)"],
+            ["O tempo está muito bonito hoje.", "Speaker 1 (PT)"],
+            # Russian examples
+            ["Здравствуйте, как ваши дела?", "Speaker 0 (RU)"],
+            ["Сегодня прекрасная погода.", "Speaker 1 (RU)"],
+            # Spanish examples
+            ["Hola, ¿cómo estás hoy?", "Speaker 0 (ES)"],
+            ["El tiempo está muy bonito hoy.", "Speaker 1 (ES)"],
+            # Turkish examples
+            ["Merhaba, bugün nasılsınız?", "Speaker 0 (TR)"],
+            ["Bugün hava çok güzel.", "Speaker 1 (TR)"]
+        ]
+    )
 
 def cleanup_old_files():
     """Remove audio files older than 24 hour"""
@@ -329,5 +352,7 @@ scheduler.start()
 if __name__ == "__main__":
     app = FastAPI()
     app.mount("/generated", StaticFiles(directory=OUTPUT_DIR), name="generated")
-    gradio_app = gr.mount_gradio_app(app, gradio_audio, path="/", favicon_path="favicon.ico")
+    app.mount("/public", StaticFiles(directory="public"), name="public")
+    
+    gradio_app = gr.mount_gradio_app(app, gradio_audio, path="/", favicon_path="public/favicon.ico")
     uvicorn.run(app, host="0.0.0.0", port=7860)

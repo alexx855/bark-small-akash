@@ -2,7 +2,7 @@
 version: "2.0"
 services:
   bark-small:
-    image: alexpedersen/audio-akash:0.1.1
+    image: alexpedersen/audio-akash:0.1.3
     expose:
       - port: 7860
         as: 7860
@@ -15,9 +15,10 @@ services:
         data:
           mount: /mnt/
           readOnly: false
+    # Optional but recommended
     env:
+      - OUTPUT_DIR=/mnt/output # Use persistent storage for app generated files
       - HF_HOME=/mnt/huggingface # Use persistent storage for model cache
-      - OUTPUT_DIR=/mnt/output
       # - PUBLIC_URL=cars.ingress.europlots.com
 profiles:
   compute:
@@ -39,6 +40,13 @@ profiles:
           attributes:
             vendor:
               nvidia:
+                # min 8gb GPU, for example:
+                # - model: rtx4090
+                # - model: rtx4080
+                # - model: rtx4070
+                # - model: rtx3090
+                # - model: rtx3080
+                # - model: rtx3070
   placement:
     dcloud:
       pricing:

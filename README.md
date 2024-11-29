@@ -43,5 +43,6 @@ Access the app at http://localhost:7860
 
 - [Bark small Hugging Face](https://huggingface.co/suno/bark-small)
 - [Available Voices](https://suno-ai.notion.site/8b8e8749ed514b0cbf3f699013548683)
+- [Akash Network](https://akash.network/docs)
 
 

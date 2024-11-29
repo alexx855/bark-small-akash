@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y git && \
 
 # Copy application files
 COPY app.py .
+COPY public/ /opt/app/public/
 
 # Run the Gradio app
 CMD ["python", "app.py"]
