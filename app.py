@@ -3,43 +3,32 @@ from main import generate_speech
 import os
 
 VOICES = {
-    # English Speakers
-    "English Male (Announcer)": "v2/en_speaker_0",  # Male, Announcer voice
-    "English Male (Deep)": "v2/en_speaker_1",       # Male, Deep voice
-    "English Female (Young)": "v2/en_speaker_2",    # Female, Young voice
-    "English Male (Senior)": "v2/en_speaker_3",     # Male, Older voice
-    "English Female (Professional)": "v2/en_speaker_4", # Female, Professional voice
-    "English Male (Clear)": "v2/en_speaker_5",      # Male, Clear voice
-    "English Male (Narrative)": "v2/en_speaker_6",  # Male, Good for narration
-    "English Female (Warm)": "v2/en_speaker_7",     # Female, Warm tone
-    "English Male (NPR)": "v2/en_speaker_8",        # Male, NPR style voice
-    "English Female (Audiobook)": "v2/en_speaker_9", # Female, Good for audiobooks
-
-    # German Speakers
-    "German Male": "v2/de_speaker_0",               # Male, Clear German voice
-    "German Female": "v2/de_speaker_1",             # Female, Standard German
-
-    # Spanish Speakers
-    "Spanish Male (Clear)": "v2/es_speaker_0",      # Male, Clear Spanish
-    "Spanish Female (Warm)": "v2/es_speaker_1",     # Female, Warm tone
-    "Spanish Male (Deep)": "v2/es_speaker_2",       # Male, Deep voice
-    "Spanish Female (Young)": "v2/es_speaker_3",    # Female, Young voice
-
-    # French Speakers
-    "French Male": "v2/fr_speaker_0",               # Male, Standard French
-    "French Female": "v2/fr_speaker_1",             # Female, Clear French
-    
-    # Hindi Speakers
-    "Hindi Female": "v2/hi_speaker_0",              # Female, Clear Hindi
-    "Hindi Male": "v2/hi_speaker_1",                # Male, Standard Hindi
-
-    # Italian Speakers
-    "Italian Male": "v2/it_speaker_0",              # Male, Standard Italian
-    "Italian Female": "v2/it_speaker_1",            # Female, Clear Italian
-
-    # Japanese Speakers
-    "Japanese Female": "v2/ja_speaker_0",           # Female, Clear Japanese
-    "Japanese Male": "v2/ja_speaker_1"              # Male, Standard Japanese
+    "English Speaker 0": "v2/en_speaker_0",
+    "English Speaker 1": "v2/en_speaker_1",
+    "English Speaker 2": "v2/en_speaker_2",
+    "English Speaker 3": "v2/en_speaker_3",
+    "English Speaker 4": "v2/en_speaker_4",
+    "English Speaker 5": "v2/en_speaker_5",
+    "English Speaker 6": "v2/en_speaker_6",
+    "English Speaker 7": "v2/en_speaker_7",
+    "English Speaker 8": "v2/en_speaker_8",
+    "English Speaker 9": "v2/en_speaker_9",
+    "French Speaker 0": "v2/fr_speaker_0",
+    "French Speaker 1": "v2/fr_speaker_1",
+    "French Speaker 2": "v2/fr_speaker_2",
+    "French Speaker 3": "v2/fr_speaker_3",
+    "French Speaker 4": "v2/fr_speaker_4",
+    "French Speaker 5": "v2/fr_speaker_5",
+    "Chinese Speaker 0": "v2/zh_speaker_0",
+    "Chinese Speaker 1": "v2/zh_speaker_1",
+    "Chinese Speaker 2": "v2/zh_speaker_2",
+    "Chinese Speaker 3": "v2/zh_speaker_3",
+    "Chinese Speaker 4": "v2/zh_speaker_4",
+    "Chinese Speaker 5": "v2/zh_speaker_5",
+    "Chinese Speaker 6": "v2/zh_speaker_6",
+    "Chinese Speaker 7": "v2/zh_speaker_7",
+    "Chinese Speaker 8": "v2/zh_speaker_8",
+    "Chinese Speaker 9": "v2/zh_speaker_9"
 }
 
 def text_to_speech(text, voice):
