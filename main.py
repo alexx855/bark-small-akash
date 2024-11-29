@@ -66,33 +66,17 @@ def save_audio(audio_array, sample_rate, prefix="audio"):
         print(f"Error saving audio file: {str(e)}")
         raise
 
-def main():
-    total_start = time.time()
-
-    # Device setup with optimizations
-    torch.backends.cudnn.benchmark = True
+def generate_speech(text, voice_preset="v2/en_speaker_6"):
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"Using device: {device}")
-
     try:
-        # Voice settings
-        voice_preset = "v2/en_speaker_6"
-        # voice_preset = "v2/es_speaker_0"
-        text = "my cat is very cute"
-
-        # Generate and save audio
         audio_array, sample_rate = create_bark_audio(text, voice_preset, device)
         filename = save_audio(audio_array, sample_rate)
-        print(f"Audio saved as: {filename}")
-
+        return filename
     except Exception as e:
         print(f"An error occurred: {str(e)}")
-        return 1
-
-    finally:
-        log_time(total_start, "Total execution")
-        
-    return 0
+        raise
 
 if __name__ == "__main__":
-    exit(main())
+    text = "my cat is very cute"
+    filename = generate_speech(text)
+    print(f"Audio saved as: {filename}")
