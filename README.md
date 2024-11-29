@@ -1,4 +1,4 @@
-# Bark Text-to-Speech App
+# Bark Text-to-Speech Akash App
 
 [Bark small](https://github.com/suno-ai/bark) transformer-based text-to-audio model created by [Suno](https://suno.com/). Bark can generate highly realistic, multilingual speech as well as other audio - including music, background noise and simple sound effects.
 

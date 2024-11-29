@@ -17,11 +17,29 @@ OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 #create hf directory if it doesn't exist
-HF_DIR = os.environ.get("HF_HOME", "hf")
+HF_DIR = os.environ.get("HF_HOME", "~/.cache/huggingface")
+
+def log_time(start_time, step_name):
+    elapsed = time.time() - start_time
+    print(f"{step_name}: {elapsed:.2f} seconds")
+    return time.time()
+
+start = time.time()
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+processor = AutoProcessor.from_pretrained("suno/bark-small")
+model = BarkModel.from_pretrained("suno/bark-small", torch_dtype=torch.float16).to(device)
+model = model.to_bettertransformer()
+model.enable_cpu_offload()
+
+start = log_time(start, "Model loading")
+
+# download and load all models
+# preload_models()
 
 def cleanup_old_files():
     """Remove audio files older than 24 hour"""
-    cutoff_time = datetime.now() - timedelta(hours=24)  # Changed from minutes=2 to hours=1
+    cutoff_time = datetime.now() - timedelta(hours=24) 
     for file in glob.glob(os.path.join(OUTPUT_DIR, "audio_*.wav")):
         file_time = datetime.fromtimestamp(os.path.getmtime(file))
         if file_time < cutoff_time:
@@ -33,26 +51,14 @@ def cleanup_old_files():
 
 # Initialize scheduler
 scheduler = BackgroundScheduler()
-scheduler.add_job(cleanup_old_files, 'interval', hours=1)  # Changed from minutes=1 to hours=1
+scheduler.add_job(cleanup_old_files, 'interval', hours=1) 
 scheduler.start()
 
-def log_time(start_time, step_name):
-    elapsed = time.time() - start_time
-    print(f"{step_name}: {elapsed:.2f} seconds")
-    return time.time()
 
 def create_bark_audio(text, voice_preset, device):
     try:
-        # Initialize model and processor
         start = time.time()
-        processor = AutoProcessor.from_pretrained("suno/bark-small")
-        model = BarkModel.from_pretrained("suno/bark-small", torch_dtype=torch.float16).to(device)
-        model =  model.to_bettertransformer()
-        model.enable_cpu_offload()
-        start = log_time(start, "Model loading")
-
-        # Process input text
-        start = time.time()
+        # Process input text directly without reloading model
         inputs = processor(
             text,
             voice_preset=voice_preset,
@@ -94,6 +100,7 @@ def save_audio(audio_array, sample_rate, prefix="audio"):
 
 def generate_speech(text, voice_preset="v2/en_speaker_6"):
     device = "cuda" if torch.cuda.is_available() else "cpu"
+
     try:
         audio_array, sample_rate = create_bark_audio(text, voice_preset, device)
         filename = save_audio(audio_array, sample_rate)

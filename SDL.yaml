@@ -2,7 +2,7 @@
 version: "2.0"
 services:
   bark-small:
-    image: alexpedersen/audio-akash:0.0.1
+    image: alexpedersen/audio-akash:0.1.1
     expose:
       - port: 7860
         as: 7860
@@ -16,8 +16,8 @@ services:
           mount: /mnt/
           readOnly: false
     env:
+      - HF_HOME=/mnt/huggingface # Use persistent storage for model cache
       - OUTPUT_DIR=/mnt/output
-      - HF_HOME=/mnt/hf
       # - PUBLIC_URL=cars.ingress.europlots.com
 profiles:
   compute:
@@ -26,11 +26,11 @@ profiles:
         cpu:
           units: 6
         memory:
-          size: 32Gi
+          size: 16Gi
         storage:
-          - size: 40GB
+          - size: 4GB
           - name: data
-            size: 100GB
+            size: 40GB
             attributes:
               persistent: true
               class: beta3
@@ -39,7 +39,6 @@ profiles:
           attributes:
             vendor:
               nvidia:
-                - model: rtx4090
   placement:
     dcloud:
       pricing:

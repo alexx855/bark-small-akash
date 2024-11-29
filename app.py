@@ -1,9 +1,96 @@
 import gradio as gr
-from main import generate_speech
 import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 import uvicorn
+import torch
+from transformers import AutoProcessor, AutoModelForTextToWaveform, BarkModel
+from scipy.io.wavfile import write as write_wav
+import time
+from datetime import datetime, timedelta
+import numpy as np
+from apscheduler.schedulers.background import BackgroundScheduler
+import glob
+
+# Environment settings
+os.environ["SUNO_OFFLOAD_CPU"] = "True"
+os.environ["SUNO_USE_SMALL_MODELS"] = "True"
+
+# Create output directory if it doesn't exist
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "output") 
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+def log_time(start_time, step_name):
+    elapsed = time.time() - start_time
+    print(f"{step_name}: {elapsed:.2f} seconds")
+    return time.time()
+
+start = time.time()
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+processor = AutoProcessor.from_pretrained("suno/bark-small")
+model = BarkModel.from_pretrained("suno/bark-small", torch_dtype=torch.float16).to(device)
+model = model.to_bettertransformer()
+# model.enable_cpu_offload()
+
+start = log_time(start, "Model loading")
+
+# download and load all models
+# preload_models()
+
+def create_bark_audio(text, voice_preset, device):
+    try:
+        start = time.time()
+        # Process input text directly without reloading model
+        inputs = processor(
+            text,
+            voice_preset=voice_preset,
+        )
+        # Move inputs to device
+        inputs = {k: v.to(device) if hasattr(v, 'to') else v for k, v in inputs.items()}
+        start = log_time(start, "Input processing")
+
+        # Generate audio
+        start = time.time()
+        audio_array = model.generate(**inputs)
+        audio_array = audio_array.cpu().numpy().squeeze()
+
+        start = log_time(start, "Audio generation")
+
+        return audio_array, model.generation_config.sample_rate
+    
+    except Exception as e:
+        print(f"Error during audio generation: {str(e)}")
+        raise
+
+def save_audio(audio_array, sample_rate, prefix="audio"):
+    try:
+        start = time.time()
+        # Convert to float32 and normalize
+        audio_array = audio_array.astype(np.float32)
+        # Ensure audio is in the range [-1, 1]
+        audio_array = np.clip(audio_array, -1, 1)
+        
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = os.path.join(OUTPUT_DIR, f"{prefix}_{timestamp}.wav")
+        write_wav(filename, sample_rate, audio_array)
+        log_time(start, "Audio saving")
+        return filename
+    
+    except Exception as e:
+        print(f"Error saving audio file: {str(e)}")
+        raise
+
+def generate_speech(text, voice_preset="v2/en_speaker_6"):
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+
+    try:
+        audio_array, sample_rate = create_bark_audio(text, voice_preset, device)
+        filename = save_audio(audio_array, sample_rate)
+        return filename
+    except Exception as e:
+        print(f"An error occurred: {str(e)}")
+        raise
 
 VOICES = {
 'Speaker 0 (EN)':'v2/en_speaker_0',
@@ -152,10 +239,10 @@ def text_to_speech_with_url(text, voice):
     return audio_file, url
 
 # Create single Gradio interface with both outputs
-demo = gr.Interface(
+gradio_audio = gr.Interface(
     fn=text_to_speech_with_url,
     inputs=[
-        gr.Textbox(label="Text to audio", placeholder="Enter text here...", show_copy_button=True, show_label=True),
+        gr.Textbox(label="Text to audio", placeholder="Enter text here...", show_copy_button=False, show_label=True),
         gr.Dropdown(choices=list(VOICES.keys()), value="Speaker 0 (EN)", label="Voice")
     ],
     outputs=[
@@ -178,8 +265,8 @@ demo = gr.Interface(
     3. Click submit to generate speech
     4. Get the public URL to share/download the generated audio (it will expire in 24 hours)
     """,
-    article="Powered by Bark-small model from Suno AI",
-    allow_flagging="never",
+    article="Powered by Bark-small model from Suno AI and Akash Network",
+    flagging_mode=None,
     examples=[
         # English examples
         ["Welcome to the news. Today's top story...", "Speaker 0 (EN)"],
@@ -222,11 +309,25 @@ demo = gr.Interface(
     ]
 )
 
-OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "output") 
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+def cleanup_old_files():
+    """Remove audio files older than 24 hour"""
+    cutoff_time = datetime.now() - timedelta(hours=24) 
+    for file in glob.glob(os.path.join(OUTPUT_DIR, "audio_*.wav")):
+        file_time = datetime.fromtimestamp(os.path.getmtime(file))
+        if file_time < cutoff_time:
+            try:
+                os.remove(file)
+                print(f"Removed old file: {file}")
+            except Exception as e:
+                print(f"Error removing file {file}: {e}")
+
+# Initialize scheduler to cleanup generated old files
+scheduler = BackgroundScheduler()
+scheduler.add_job(cleanup_old_files, 'interval', hours=1) 
+scheduler.start()
 
 if __name__ == "__main__":
     app = FastAPI()
     app.mount("/generated", StaticFiles(directory=OUTPUT_DIR), name="generated")
-    gradio_app = gr.mount_gradio_app(app, demo, path="/", favicon_path="favicon.ico")
+    gradio_app = gr.mount_gradio_app(app, gradio_audio, path="/", favicon_path="favicon.ico")
     uvicorn.run(app, host="0.0.0.0", port=7860)
