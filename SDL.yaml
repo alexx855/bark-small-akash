@@ -1,0 +1,49 @@
+---
+version: "2.0"
+services:
+  bark-small:
+    image: alexpedersen/bark-small:0.0.1
+    expose:
+      - port: 7860
+        as: 7860
+        to:
+          - global: true
+    params:
+      storage:
+        data:
+          mount: /mnt/
+          readOnly: false
+    env:
+      - HF_HOME=/mnt/models
+profiles:
+  compute:
+    bark-small:
+      resources:
+        cpu:
+          units: 6
+        memory:
+          size: 32Gi
+        storage:
+          - size: 40GB
+          - name: data
+            size: 100GB
+            attributes:
+              persistent: true
+              class: beta3
+        gpu:
+          units: 1
+          attributes:
+            vendor:
+              nvidia:
+                - model: rtx4090
+  placement:
+    dcloud:
+      pricing:
+        bark-small:
+          denom: uakt
+          amount: 1000
+deployment:
+  bark-small:
+    dcloud:
+      profile: bark-small
+      count: 1

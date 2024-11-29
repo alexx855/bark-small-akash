@@ -5,3 +5,4 @@ torch
 bark
 scipy
 numpy
+gradio

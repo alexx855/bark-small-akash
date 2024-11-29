@@ -76,10 +76,9 @@ def main():
 
     try:
         # Voice settings
-        # voice_preset = "v2/en_speaker_6"
+        voice_preset = "v2/en_speaker_6"
         # voice_preset = "v2/es_speaker_0"
-        voice_preset = "v2/es_speaker_2"
-        text = "pinta esa patagonia amigo?"
+        text = "my cat is very cute"
 
         # Generate and save audio
         audio_array, sample_rate = create_bark_audio(text, voice_preset, device)
