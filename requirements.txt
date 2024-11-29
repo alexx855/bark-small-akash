@@ -6,3 +6,4 @@ bark
 scipy
 numpy
 gradio
+apscheduler

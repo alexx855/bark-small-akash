@@ -10,6 +10,9 @@ WORKDIR /opt/app
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
+# Create output directory
+RUN mkdir output
+
 # Copy application files
 COPY main.py .
 COPY app.py .

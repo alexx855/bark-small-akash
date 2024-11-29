@@ -3,12 +3,35 @@ from transformers import AutoProcessor, AutoModelForTextToWaveform, BarkModel
 from scipy.io.wavfile import write as write_wav
 import os
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
+from apscheduler.schedulers.background import BackgroundScheduler
+import glob
 
 # Environment settings
 os.environ["SUNO_OFFLOAD_CPU"] = "True"
 os.environ["SUNO_USE_SMALL_MODELS"] = "True"
+
+# Create output directory if it doesn't exist
+OUTPUT_DIR = "output"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+def cleanup_old_files():
+    """Remove audio files older than 1 hour"""
+    cutoff_time = datetime.now() - timedelta(hours=1)
+    for file in glob.glob(os.path.join(OUTPUT_DIR, "audio_*.wav")):
+        file_time = datetime.fromtimestamp(os.path.getmtime(file))
+        if file_time < cutoff_time:
+            try:
+                os.remove(file)
+                print(f"Removed old file: {file}")
+            except Exception as e:
+                print(f"Error removing file {file}: {e}")
+
+# Initialize scheduler
+scheduler = BackgroundScheduler()
+scheduler.add_job(cleanup_old_files, 'interval', minutes=5)
+scheduler.start()
 
 def log_time(start_time, step_name):
     elapsed = time.time() - start_time
@@ -57,7 +80,7 @@ def save_audio(audio_array, sample_rate, prefix="audio"):
         audio_array = np.clip(audio_array, -1, 1)
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{prefix}_{timestamp}.wav"
+        filename = os.path.join(OUTPUT_DIR, f"{prefix}_{timestamp}.wav")
         write_wav(filename, sample_rate, audio_array)
         log_time(start, "Audio saving")
         return filename
