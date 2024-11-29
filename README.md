@@ -50,7 +50,7 @@ Example API usage with Python:
 ```python
 import requests
 
-API_URL = "http://localhost:7860/api/predict"
+API_URL = "http://localhost:7860/api/predict/"  # Note the trailing slash
 
 # Prepare the payload
 payload = {
