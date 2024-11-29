@@ -13,8 +13,11 @@ os.environ["SUNO_OFFLOAD_CPU"] = "True"
 os.environ["SUNO_USE_SMALL_MODELS"] = "True"
 
 # Create output directory if it doesn't exist
-OUTPUT_DIR = "output"
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "output") 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+#create hf directory if it doesn't exist
+HF_DIR = os.environ.get("HF_HOME", "hf")
 
 def cleanup_old_files():
     """Remove audio files older than 24 hour"""
