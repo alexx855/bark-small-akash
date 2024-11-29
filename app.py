@@ -140,8 +140,15 @@ def text_to_speech(text, voice):
     audio_file = generate_speech(text, voice_preset)
     return audio_file
 
-# Create Gradio interface
-demo = gr.Interface(
+def text_to_speech_url(text, voice):
+    voice_preset = VOICES[voice]
+    audio_file = generate_speech(text, voice_preset)
+    # Convert local path to URL path
+    return f"/file={audio_file}"
+
+# Create Gradio interfaces
+# Main interface for audio playback
+demo1 = gr.Interface(
     fn=text_to_speech,
     inputs=[
         gr.Textbox(label="Text to speak", placeholder="Enter text here..."),
@@ -159,6 +166,21 @@ demo = gr.Interface(
         ["The weather today will be sunny with a high of 75 degrees.", "Speaker 4 (EN)"]
     ]
 )
+
+# API interface for getting URL
+demo2 = gr.Interface(
+    fn=text_to_speech_url,
+    inputs=[
+        gr.Textbox(label="Text to speak"),
+        gr.Dropdown(choices=list(VOICES.keys()), value="Speaker 0 (EN)", label="Voice")
+    ],
+    outputs=gr.Textbox(label="Audio File URL"),
+    title="Text to Speech API",
+    description="Get URL for generated speech audio file",
+)
+
+# Combine the interfaces
+demo = gr.TabbedInterface([demo1, demo2], ["Audio Player", "Get URL"])
 
 if __name__ == "__main__":
     demo.launch(share=True, enable_api=True)

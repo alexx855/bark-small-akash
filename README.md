@@ -46,13 +46,14 @@ Access the app at http://localhost:7860
 
 When you launch the app, Gradio automatically creates a REST API endpoint. The API URL will be displayed in the console output.
 
-Example API usage with Python:
+The app provides two API endpoints:
+
+1. Audio Generation API (returns audio file):
 ```python
 import requests
 
-API_URL = "http://localhost:7860/api/predict/"  # Note the trailing slash
+API_URL = "http://localhost:7860/api/predict/"
 
-# Prepare the payload
 payload = {
     "data": [
         "Hello, this is a test message",  # Text input
@@ -60,17 +61,38 @@ payload = {
     ]
 }
 
-# Make the API request
 response = requests.post(API_URL, json=payload)
 result = response.json()
+print(result)  # Contains audio file data
+```
 
-# The result will contain the path to the generated audio file
-print(result)
+2. URL Generation API (returns audio file URL):
+```python
+import requests
+
+API_URL = "http://localhost:7860/api/predict/2"  # Note the /2 for second interface
+
+payload = {
+    "data": [
+        "Hello, this is a test message",
+        "Speaker 0 (EN)"
+    ]
+}
+
+response = requests.post(API_URL, json=payload)
+result = response.json()
+print(result["data"])  # Contains URL to audio file
 ```
 
 Example API usage with cURL:
 ```bash
-curl -X POST http://localhost:7860/api/predict \
+# For audio file:
+curl -X POST http://localhost:7860/api/predict/ \
+  -H "Content-Type: application/json" \
+  -d '{"data": ["Hello, this is a test message", "Speaker 0 (EN)"]}'
+
+# For URL:
+curl -X POST http://localhost:7860/api/predict/2 \
   -H "Content-Type: application/json" \
   -d '{"data": ["Hello, this is a test message", "Speaker 0 (EN)"]}'
 ```
