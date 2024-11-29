@@ -4,7 +4,8 @@ import os
 
 VOICES = {
     "Speaker 0 (EN)": "v2/en_speaker_0",
-    "Speaker 1 (EN)": "v2/en_speaker_1"
+    "Speaker 1 (EN)": "v2/en_speaker_1",
+    "Speaker 2 (EN)": "v2/en_speaker_2"
 }
 
 def text_to_speech(text, voice):
@@ -26,7 +27,7 @@ demo = gr.Interface(
     examples=[
         ["Welcome to the news. Today's top story...", "Speaker 0 (EN)"],
         ["Once upon a time in a magical forest...", "Speaker 1 (EN)"],
-        ["The quick brown fox jumps over the lazy dog.", "Speaker 0 (EN)"]
+        ["The quick brown fox jumps over the lazy dog.", "Speaker 2 (EN)"]
     ]
 )
 
